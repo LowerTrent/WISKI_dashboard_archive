@@ -43,7 +43,7 @@ jobs:
 
       - name: Install WISKIr Custom Package from GitHub
         run: |
-          Rscript -e "remotes::install_github('CentreForHydrology/WISKIr/WISKIr')"
+          Rscript -e "remotes::install_github('CentreForHydrology/WISKIr')"
 
       - name: Render R Markdown to HTML
         run: |
