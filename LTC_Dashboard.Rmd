@@ -1,0 +1,698 @@
+---
+title: "FFW Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation:
+    storyboard: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+library(WISKIr)
+library(ggplot2)
+library(plotly)
+library(plyr)
+library(knitr)
+library(kableExtra)
+library(flexdashboard)
+library(shiny)
+#setting rotating date from today's date
+dt1 = as.character(Sys.Date() - 15)
+# create some data to make plots
+#Cold Creek
+COLDF<-getWISKIvalues(timeSeries= "3394042", startDate=dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+COLDP<-getWISKIvalues(timeSeries= "3536042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#changing column names
+colnames(COLDP)<-c("Date", "Precipitation", "QC")
+colnames(COLDF)<-c("Date", "Flow","QC")
+#Merging the Precip and Flow dataframes
+COLDT<-na.omit(COLDF)
+#Turning the date into a useable format
+COLDate<-as.POSIXct(COLDT$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+COLDateP<-as.POSIXct(COLDP$Date,format="%yyyy%mm%dd")
+#merging the new date/time and the dataframe
+COLDFin<-cbind(COLDT,COLDate)
+COLDPFin<-cbind(COLDP,COLDateP)
+colnames(COLDFin)<- c("DateO","Discharge","QC","Date")
+colnames(COLDPFin)<-c("DateO","Precipitation","QC","Date")
+
+#Mayhew Creek
+MayF<-getWISKIvalues(timeSeries= "18125042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+MayP<-getWISKIvalues(timeSeries= "87433042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#Changing the column names
+colnames(MayF)<-c("Date", "Discharge","QC")
+colnames(MayP)<-c("Date", "Precipitation", "QC")
+#Omit the na's
+MayFF<-na.omit(MayF)
+#Turning the date into a useable format
+MayDate<-as.POSIXct(MayFF$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+MayDateP<-as.POSIXct(MayP$Date,format="%yyyy%mm%dd")
+#merging the new date/time and the dataframe
+MayFin<-cbind(MayFF,MayDate)
+MayPFin<-cbind(MayP,MayDateP)
+colnames(MayFin)<- c("DateO","Discharge","QC","Date")
+colnames(MayPFin)<-c("DateO","Precipitation","QC","Date")
+
+# Trout Creek
+
+TroutF<-getWISKIvalues(timeSeries= "18208042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+TroutP<-getWISKIvalues(timeSeries= "4508042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#changing column names
+colnames(TroutP)<-c("Date", "Precipitation", "QC")
+colnames(TroutF)<-c("Date", "Flow","QC")
+#Merging the Precip and Flow dataframes
+TroutT<-na.omit(TroutF)
+#Turning the date into a useable format
+TroutDateF<-as.POSIXct(TroutT$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+TroutDateP<-as.POSIXct(TroutP$Date,format="%yyyy%mm%dd")
+#merging the new date/time and the dataframe
+TroutFin<-cbind(TroutT,TroutDateF)
+TroutPFin<-cbind(TroutP,TroutDateP)
+colnames(TroutFin)<- c("DateO","Discharge","QC","Date")
+colnames(TroutPFin)<-c("DateO","Precipitation","QC","Date")
+
+#Hoards Creek
+
+HOARDF<-getWISKIvalues(timeSeries= "18129042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+HOARDP<-getWISKIvalues(timeSeries= "3542042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#changing column names
+colnames(HOARDP)<-c("Date", "Precipitation", "QC")
+colnames(HOARDF)<-c("Date", "Flow","QC")
+#Merging the Precip and Flow dataframes
+HOARDT<-na.omit(HOARDF)
+#Turning the date into a useable format
+HOARDDateF<-as.POSIXct(HOARDT$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+HOARDDateP<-as.POSIXct(HOARDP$Date,format="%yyyy%mm%dd")
+#merging the new date/time and the dataframe
+HOARDFin<-cbind(HOARDT,HOARDDateF)
+HOARDPFin<-cbind(HOARDP,HOARDDateP)
+colnames(HOARDFin)<- c("DateO","Discharge","QC","Date")
+colnames(HOARDPFin)<-c("DateO","Precipitation","QC","Date")
+
+#Salt Creek
+
+SALTF<-getWISKIvalues(timeSeries= "18126042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+SALTP<-getWISKIvalues(timeSeries= "3540042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#changing column names
+colnames(SALTP)<-c("Date", "Precipitation", "QC")
+colnames(SALTF)<-c("Date", "Flow","QC")
+#Merging the Precip and Flow dataframes
+SALTT<-na.omit(SALTF)
+#Turning the date into a useable format
+SALTDateF<-as.POSIXct(SALTT$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+SALTDateP<-as.POSIXct(SALTP$Date,format="%yyyy%mm%dd")
+#merging the new date/time and the dataframe
+SALTFin<-cbind(SALTT,SALTDateF)
+SALTPFin<-cbind(SALTP,SALTDateP)
+colnames(SALTFin)<- c("DateO","Discharge","QC","Date")
+colnames(SALTPFin)<-c("DateO","Precipitation","QC","Date")
+
+#Rawdon Creek
+
+RawF<-getWISKIvalues(timeSeries= "18123042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+RawP<-getWISKIvalues(timeSeries= "3539042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#changing column names
+colnames(RawP)<-c("Date", "Precipitation", "QC")
+colnames(RawF)<-c("Date", "Flow","QC")
+#Merging the Precip and Flow dataframes
+RawT<-na.omit(RawF)
+#Turning the date into a useable format
+RawDateF<-as.POSIXct(RawT$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+RawDateP<-as.POSIXct(RawP$Date,format="%yyyy%mm%dd")
+#merging the new date/time and the dataframe
+RawFin<-cbind(RawT,RawDateF)
+RawPFin<-cbind(RawP,RawDateP)
+colnames(RawFin)<- c("DateO","Discharge","QC","Date")
+colnames(RawPFin)<-c("DateO","Precipitation","QC","Date")
+
+#Proctor (Butler) Creek
+
+PROCF<-getWISKIvalues(timeSeries= "18124042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+PROCP<-getWISKIvalues(timeSeries= "3538042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#changing column names
+colnames(PROCP)<-c("Date", "Precipitation", "QC")
+colnames(PROCF)<-c("Date", "Flow","QC")
+#Merging the Precip and Flow dataframes
+PROCT<-na.omit(PROCF)
+#Turning the date into a useable format
+PROCDateF<-as.POSIXct(PROCT$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+PROCDateP<-as.POSIXct(PROCP$Date,format="%yyyy%mm%dd")
+#merging the new date/time and the dataframe
+PROCFin<-cbind(PROCT,PROCDateF)
+PROCPFin<-cbind(PROCP,PROCDateP)
+colnames(PROCFin)<- c("DateO","Discharge","QC","Date")
+colnames(PROCPFin)<-c("DateO","Precipitation","QC","Date")
+
+#Shelter Valley Creek
+
+SHELF<-getWISKIvalues(timeSeries= "18119042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+SHELP<-getWISKIvalues(timeSeries= "3541042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#changing column names
+colnames(SHELP)<-c("Date", "Precipitation", "QC")
+colnames(SHELF)<-c("Date", "Flow","QC")
+#Merging the Precip and Flow dataframes
+SHELT<-na.omit(SHELF)
+#Turning the date into a useable format
+SHELDateF<-as.POSIXct(SHELT$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+SHELDateP<-as.POSIXct(SHELP$Date,format="%yyyy%mm%dd")
+#merging the new date/time and the dataframe
+SHELFin<-cbind(SHELT,SHELDateF)
+SHELPFin<-cbind(SHELP,SHELDateP)
+colnames(SHELFin)<- c("DateO","Discharge","QC","Date")
+colnames(SHELPFin)<-c("DateO","Precipitation","QC","Date")
+
+#Burnley (Mill) Creek
+
+BURNF<-getWISKIvalues(timeSeries= "18122042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+BURNP<-getWISKIvalues(timeSeries= "3535042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#changing column names
+colnames(BURNP)<-c("Date", "Precipitation", "QC")
+colnames(BURNF)<-c("Date", "Flow","QC")
+#Merging the Precip and Flow dataframes
+BURNT<-na.omit(BURNF)
+#Turning the date into a useable format
+BURNDateF<-as.POSIXct(BURNT$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+BURNDateP<-as.POSIXct(BURNP$Date,format="%yyyy%mm%dd")
+#merging the new date/time and the dataframe
+BURNFin<-cbind(BURNT,BURNDateF)
+BURNPFin<-cbind(BURNP,BURNDateP)
+colnames(BURNFin)<- c("DateO","Discharge","QC","Date")
+colnames(BURNPFin)<-c("DateO","Precipitation","QC","Date")
+
+#Crowe River Discharge
+
+#CroweF<-getWISKIvalues(timeSeries= "12256042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#Changing the column names
+#colnames(CroweF)<-c("Date", "Discharge","QC")
+#Omit the na's
+#CroweFF<-na.omit(CroweF)
+#Turning the date into a useable format
+#CroweDate<-as.POSIXct(CroweFF$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+#merging the new date/time and the dataframe
+#CroweFin<-cbind(CroweFF,CroweDate)
+#colnames(CroweFin)<- c("DateO","Discharge","QC","Date")
+
+##Trent River Sites
+#Trent River Upper Glen Ross
+
+UGRF<-getWISKIvalues(timeSeries= "3396042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#Changing the column names
+colnames(UGRF)<-c("Date", "Water Level","QC")
+#Omit the na's
+UGRFF<-na.omit(UGRF)
+#Turning the date into a useable format
+UGRDate<-as.POSIXct(UGRFF$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+#merging the new date/time and the dataframe
+UGRin<-cbind(UGRFF,UGRDate)
+colnames(UGRin)<- c("DateO","WaterLevel","QC","Date")
+
+#Lower Glen Ross
+LGRF<-getWISKIvalues(timeSeries= "3397042", startDate= dt1, timezone="GMT-5", site.url="http://waterdata.quinteconservation.ca/")
+#Changing the column names
+colnames(LGRF)<-c("Date", "Water Level (m)","QC")
+#Omit the na's
+LGRFF<-na.omit(LGRF)
+#Turning the date into a useable format
+LGRDate<-as.POSIXct(LGRFF$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+#merging the new date/time and the dataframe
+LGRin<-cbind(LGRFF,LGRDate)
+colnames(LGRin)<- c("DateO","WaterLevel","QC","Date")
+
+#Percy Boom Removed
+
+
+#Lake Ontario
+LakeO<-getWISKIvalues(timeSeries= "946325042", startDate= dt1, timezone="GMT-5", site.url="https://www.swmc.mnr.gov.on.ca/")
+colnames(LakeO)<-c("Date", "WaterLevel","QC")
+#Merging the Precip and Flow dataframes
+LakeOnt<-na.omit(LakeO)
+#Turning the date into a useable format
+LakeOntF<-as.POSIXct(LakeOnt$Date,format="%yyyy%mm%dd %HH:%MM:%SS:%ssss")
+#merging the new date/time and the dataframe
+LakeOntFin<-cbind(LakeO,LakeOntF)
+colnames(LakeOntFin)<- c("DateO","WaterLevel","QC","Date")
+
+
+
+Cold_Creek<-tail(COLDFin$Discharge,1)
+Mayhew_Creek<-tail(MayFin$Discharge,1)
+Rawdon_Creek<-tail(RawFin$Discharge,1)
+Proctor_Creek<-tail(PROCFin$Discharge,1)
+Hoards_Creek<-tail(HOARDFin$Discharge,1)
+Salt_Creek<-tail(SALTFin$Discharge,1)
+Shelter_Valley_Creek<-tail(SHELFin$Discharge,1)
+Trout_Creek<-tail(TroutFin$Discharge,1)
+Burnley_Creek<-tail(BURNFin$Discharge,1)
+#Crowe_River<-tail(CroweFin$Discharge,1)
+
+
+ColdRecentD<-tail(COLDFin$Date,1)
+MayhewRecentD<-tail(MayFin$Date,1)
+RawdonRecentD<-tail(RawFin$Date,1)
+ProctorRecentD<-tail(PROCFin$Date,1)
+HoardsRecentD<-tail(HOARDFin$Date,1)
+SaltRecentD<-tail(SALTFin$Date,1)
+ShelterRecentD<-tail(SHELFin$Date,1)
+TroutRecentD<-tail(TroutFin$Date,1)
+BurnleyRecentD<-tail(BURNFin$Date,1)
+#CroweRecentD<-tail(CroweFin$Date,1)
+
+
+
+Tribs<- rbind(Cold_Creek,Mayhew_Creek,Rawdon_Creek,Proctor_Creek,Hoards_Creek,Salt_Creek,Shelter_Valley_Creek,Trout_Creek,Burnley_Creek)
+Dates<-c(ColdRecentD,MayhewRecentD,RawdonRecentD,ProctorRecentD,HoardsRecentD,SaltRecentD,ShelterRecentD,TroutRecentD,BurnleyRecentD)
+Date1<- as.character.Date(Dates)
+
+RecentFlow<-cbind(Date1,Tribs)
+colnames(RecentFlow)<- c("Date/Time", "Discharge (cumec)")
+rownames(RecentFlow)<-c("Cold Creek","Mayhew Creek", "Rawdon Creek", "Proctor Creek", "Hoards Creek", "Salt Creek", "Shelter Valley", "Trout Creek", "Burnley Creek")
+
+
+
+
+UpperGlen<-tail(UGRin$WaterLevel,1)
+LowerGlen<-tail(LGRin$WaterLevel,1)
+LakeONT<- tail(LakeOntFin$WaterLevel,1)
+
+
+UpperGlenD<-tail(UGRin$Date,1)
+LowerGlenD<-tail(LGRin$Date,1)
+LakeONTD<- tail(LakeOntFin$Date,1)
+River<- rbind(UpperGlen,LowerGlen,LakeONT)
+DatesR<-c(UpperGlenD,LowerGlenD,LakeONTD)
+Date2<- as.character.Date(DatesR)
+
+RecentLevel<-cbind(Date2,River)
+colnames(RecentLevel)<- c("Date/Time", "Water Level (masL)")
+rownames(RecentLevel)<-c("Upper Glen Ross", "Lower Glen Ross", "Lake Ontario")
+
+
+TRCLevels<-read.csv("Trent River Concern Levels.csv")
+colnames(TRCLevels)<- c("","Rice Lake", "Percy Boom", "Upper Glen Ross", "Lower Glen Ross")
+
+
+```
+
+# Summary
+
+## Row
+
+### Concern Levels
+
+```{r}
+TRCLevels%>% kable(booktabs=TRUE)%>% kable_styling()
+
+```
+
+### Current Observed Water Level {.no-mobile}
+
+```{r}
+#RecentLevel%>% kable(booktabs=TRUE)%>% kable_styling()%>%footnote(number=c("masl= metres above sea level"))
+
+createTable <- function(df, tableHeight = 50){
+  
+  # Create the value parameters
+  # Headers
+  nms <- lapply(names(df), function(x){
+    return(paste0("<b>", x, "</b>"))    
+  })
+  
+  nms <- append(nms, "<b>Rows</b>", after = 0)
+  headerValues <- lapply(nms, function(x){return(list(x))})
+  
+  # Cell values
+  names(df) <- NULL
+  cellValues <- apply(df, 2, function(x){return(list(x))})
+  cellValues <- lapply(cellValues, function(x){return(unlist(x))})
+  
+  cellValues <- append(cellValues, list(rownames(df)), after = 0)
+  
+  # Create the list to pass to plot_ly()
+  header <- list(
+    values = headerValues, 
+    
+    # Formatting 
+    line = list(color = '#DFE8F3'),
+    align = c('left', rep('center', ncol(df))),
+    font = list(color = '#ffffff', size = 16),
+    fill = list(color = '#999999')
+  )
+  
+  cells <- list(
+    values = cellValues,
+    
+    # Formatting
+    line = list(color = '#DFE8F3'),
+    align = c('left', rep('center', ncol(df))),
+    font = list(color = c('#262626'), size = 14),
+    fill = list(color = c("FFFFFF", rep("FFFFFF", ncol(df)))),
+    height = tableHeight
+  )
+  
+  # Create table in plotly
+  p <- plot_ly(
+    type = "table",
+    header = header,
+    cells = cells,
+    width = 800, 
+    height = 1000) %>% 
+    
+    layout(xaxis = list(zeroline = F, showgrid = F, showticklabels = F),
+           yaxis = list(zeroline = F, showgrid = F, showticklabels = F))
+  
+  return(p)
+}
+
+RecentLEV<-as.data.frame(RecentLevel)
+p <- createTable(RecentLEV)
+p
+##d9d9d9
+```
+
+### Current Observed Water Level {.mobile}
+
+```{r}
+RecentLevel%>% kable(booktabs=TRUE)%>% kable_styling()
+```
+
+## Row
+
+### Current Observed Flow {.no-mobile}
+
+```{r}
+#RecentFlow%>% kable(booktabs=TRUE)%>% kable_styling()%>%footnote(number=c("cms= cubic metres per second"))
+createTable <- function(df, tableHeight = 30){
+  
+  # Create the value parameters
+  # Headers
+  nms <- lapply(names(df), function(x){
+    return(paste0("<b>", x, "</b>"))    
+  })
+  
+  nms <- append(nms, "<b>Rows</b>", after = 0)
+  headerValues <- lapply(nms, function(x){return(list(x))})
+  
+  # Cell values
+  names(df) <- NULL
+  cellValues <- apply(df, 2, function(x){return(list(x))})
+  cellValues <- lapply(cellValues, function(x){return(unlist(x))})
+  
+  cellValues <- append(cellValues, list(rownames(df)), after = 0)
+  
+  # Create the list to pass to plot_ly()
+  header <- list(
+    values = headerValues, 
+    
+    # Formatting 
+    line = list(color = '#DFE8F3'),
+    align = c('left', rep('center', ncol(df))),
+    font = list(color = '#ffffff', size = 16),
+    fill = list(color = '#999999')
+  )
+  
+  cells <- list(
+    values = cellValues,
+    
+    # Formatting
+    line = list(color = '#DFE8F3'),
+    align = c('left', rep('center', ncol(df))),
+    font = list(color = c('#262626'), size = 14),
+    fill = list(color = c("FFFFFF", rep("FFFFFF", ncol(df)))),
+    height = tableHeight
+  )
+  
+  # Create table in plotly
+  p <- plot_ly(
+    type = "table",
+    header = header,
+    cells = cells,
+    width = 800, 
+    height = 1000) %>% 
+    
+    layout(xaxis = list(zeroline = F, showgrid = F, showticklabels = F),
+           yaxis = list(zeroline = F, showgrid = F, showticklabels = F))
+  
+  return(p)
+}
+
+RecentFLO<-as.data.frame(RecentFlow)
+p <- createTable(RecentFLO)
+p
+```
+
+### Current Observed Flow {.mobile}
+
+```{r}
+RecentFlow%>% kable(booktabs=TRUE)%>% kable_styling()
+```
+
+### 
+
+Add 74.2 to Lake Ontario to obtain current water level
+
+masL- metres above sea level
+
+cumec- cubic metres per second
+
+Data shown on this dashboard is updated two times a day.
+
+Provisional data: The data provided on this page is in its raw form and has not been checked for errors/omissions. Anyone using this data is cautioned to carefully consider the provisional nature of this information and should not use it for making decisions that concern personal or public safety. Lower Trent Conservation and its employees accept no responsibility for any loss, damage, injury, or loss in value to any person, property, service or otherwise, resulting from its use.
+
+# Trout
+
+## Column {data-height="800"}
+
+### Discharge (Cubic Metres per Second)
+
+```{r}
+TCD<-ggplot(TroutFin, aes(x=Date, y=Discharge))+ylab("Discharge(cumec)")+ geom_line(color = "blue")+ geom_hline(yintercept=7, linetype="dashed", color="red", size=1)+ geom_hline(yintercept=3.5, linetype="dashed", color="red", size=1)+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(7.3), label = c("2 Year Flow") , color="Black", size=3 , angle=1800, fontface="bold")+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(3.7), label = c("Concern Level") , color="Black", size=3 , angle=1800, fontface="bold")
+ggplotly(TCD)
+```
+
+## Column {data-height="800"}
+
+### Total Precipitation (mm)
+
+```{r}
+TCPG<-ggplot(TroutPFin, aes(x=Date, y=Precipitation))+labs(y="Total Daily Precipitation (mm)")+geom_bar(stat="identity", colour="black")
+ggplotly(TCPG)
+```
+
+# Burnley
+
+## Column {data-height="800"}
+
+### Discharge (Cubic Metres per Second)
+
+```{r}
+BCD<-ggplot(BURNFin, aes(x=Date, y=Discharge))+ylab("Discharge(cumec)")+ geom_line(color = "blue")+ geom_hline(yintercept=14, linetype="dashed", color="red", size=1)+ geom_hline(yintercept=7, linetype="dashed", color="red", size=1)+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(14.5), label = c("2 Year Flow") , color="Black", size=3 , angle=1800, fontface="bold")+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(7.5), label = c("Concern Level") , color="Black", size=3 , angle=1800, fontface="bold")
+ggplotly(BCD)
+```
+
+## Column {data-height="800"}
+
+### Total Precipitation (mm)
+
+```{r}
+BCPG<-ggplot(BURNPFin, aes(x=Date, y=Precipitation))+labs(y="Total Daily Precipitation (mm)")+geom_bar(stat="identity", colour="black")
+ggplotly(BCPG)
+```
+
+# Salt
+
+## Column {data-height="800"}
+
+### Discharge (Cubic Metres per Second)
+
+```{r}
+SCD<-ggplot(SALTFin, aes(x=Date, y=Discharge))+ylab("Discharge(cumec)")+ geom_line(color = "blue")+ geom_hline(yintercept=14, linetype="dashed", color="red", size=1)+ geom_hline(yintercept=7, linetype="dashed", color="red", size=1)+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(14.5), label = c("2 Year Flow") , color="Black", size=3 , angle=1800, fontface="bold")+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(7.5), label = c("Concern Level") , color="Black", size=3 , angle=1800, fontface="bold")
+ggplotly(SCD)
+```
+
+## Column {data-height="800"}
+
+### Total Precipitation (mm)
+
+```{r}
+SCPG<-ggplot(SALTPFin, aes(x=Date, y=Precipitation))+labs(y="Total Daily Precipitation (mm)")+geom_bar(stat="identity", colour="black")
+ggplotly(SCPG)
+```
+
+# Hoards
+
+## Column {data-height="800"}
+
+### Discharge (Cubic Metres per Second)
+
+```{r}
+HCD<-ggplot(HOARDFin, aes(x=Date, y=Discharge))+ylab("Discharge(cumec)")+ geom_line(color = "blue")+ geom_hline(yintercept=17, linetype="dashed", color="red", size=1)+ geom_hline(yintercept=8.5, linetype="dashed", color="red", size=1)+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(17.5), label = c("2 Year Flow") , color="Black", size=3 , angle=1800, fontface="bold")+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(8.7), label = c("Concern Level") , color="Black", size=3 , angle=1800, fontface="bold")
+ggplotly(HCD)
+```
+
+## Column {data-height="800"}
+
+### Total Precipitation (mm)
+
+```{r}
+HCPG<-ggplot(HOARDPFin, aes(x=Date, y=Precipitation))+labs(y="Total Daily Precipitation (mm)")+geom_bar(stat="identity", colour="black")
+ggplotly(HCPG)
+```
+
+# Rawdon
+
+## Column {data-height="800"}
+
+### Discharge (Cubic Metres per Second)
+
+```{r}
+RCD<-ggplot(RawFin, aes(x=Date, y=Discharge))+ylab("Discharge(cumec)")+ geom_line(color = "blue")+ geom_hline(yintercept=12, linetype="dashed", color="red", size=1)+ geom_hline(yintercept=6, linetype="dashed", color="red", size=1)+ annotate("text", x=as.POSIXct(dt1, origin = ), y = c(12.5), label = c("2 Year Flow") , color="Black", size=3 , angle=1800, fontface="bold")+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(6.5), label = c("Concern Level") , color="Black", size=3 , angle=1800, fontface="bold")
+ggplotly(RCD)
+```
+
+## Column {data-height="800"}
+
+### Total Precipitation (mm)
+
+```{r}
+RCPG<-ggplot(RawPFin, aes(x=Date, y=Precipitation))+labs(y="Total Daily Precipitation (mm)")+geom_bar(stat="identity", colour="black")
+ggplotly(RCPG)
+```
+
+# Cold
+
+## Column {data-height="800"}
+
+### Discharge (Cubic Metres per Second)
+
+```{r}
+CCOD<-ggplot(COLDFin, aes(x=Date, y=Discharge))+ylab("Discharge (cumec)")+ geom_line(color = "blue")+ geom_hline(yintercept=24, linetype="dashed", color="red", size=1)+ geom_hline(yintercept=12, linetype="dashed", color="red", size=1)+ annotate("text", x=as.POSIXct(dt1, origin = ), y = c(24.5), label = c("2 Year Flow") , color="Black", size=3 , angle=1800, fontface="bold")+ annotate("text", x=as.POSIXct(dt1,origin=), y = c(12.5), label = c("Concern Level") , color="Black", size=3 , angle=1800, fontface="bold")
+
+ggplotly(CCOD)
+```
+
+## Column {data-height="800"}
+
+### Total Precipitation (mm)
+
+```{r}
+CCOP<-ggplot(COLDPFin, aes(x=Date, y=Precipitation))+labs(y="Total Daily Precipitation (mm)")+geom_bar(stat="identity", colour="black")
+ggplotly(CCOP)
+
+```
+
+# Mayhew
+
+## Row {data-height="800"}
+
+### Discharge (Cubic Metres per Second)
+
+```{r}
+MayD<-ggplot(MayFin, aes(x=Date, y=Discharge))+ylab("Discharge(cumec)")+geom_line(color = "blue")+ geom_hline(yintercept=7, linetype="dashed", color="red", size=1)+ geom_hline(yintercept=3.5, linetype="dashed", color="red", size=1)+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(7.3), label = c("2 Year Flow") , color="Black", size=3 , angle=1800, fontface="bold")+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(3.8), label = c("Concern Level") , color="Black", size=3 , angle=1800, fontface="bold")
+
+ggplotly(MayD)
+```
+
+## Column {data-height="800"}
+
+### Total Precipitation (mm)
+
+```{r}
+MayP<-ggplot(MayPFin, aes(x=Date, y=Precipitation))+labs(y="Total Daily Precipitation (mm)")+geom_bar(stat="identity", colour="black")
+ggplotly(MayP)
+
+```
+
+# Butler
+
+## Column {data-height="800"}
+
+### Discharge (Cubic Metres per Second)
+
+```{r}
+PCD<-ggplot(PROCFin, aes(x=Date, y=Discharge))+ylab("Discharge(cumec)")+ geom_line(color = "blue")+ geom_hline(yintercept=6.8, linetype="dashed", color="red", size=1)+ geom_hline(yintercept=3.4, linetype="dashed", color="red", size=1)+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(7.1), label = c("2 Year Flow") , color="Black", size=3 , angle=1800, fontface="bold")+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(3.6), label = c("Concern Level") , color="Black", size=3 , angle=1800, fontface="bold")
+ggplotly(PCD)
+```
+
+## Column {data-height="800"}
+
+### Total Precipitation (mm)
+
+```{r}
+PCPG<-ggplot(PROCPFin, aes(x=Date, y=Precipitation))+labs(y="Total Daily Precipitation (mm)")+geom_bar(stat="identity", colour="black")
+ggplotly(PCPG)
+```
+
+# ShelterValley
+
+## Column {data-height="800"}
+
+### Discharge (Cubic Metres per Second)
+
+```{r}
+SVCD<-ggplot(SHELFin, aes(x=Date, y=Discharge))+ylab("Discharge(cumec)")+ geom_line(color = "blue")+ geom_hline(yintercept=14, linetype="dashed", color="red", size=1)+ geom_hline(yintercept=7, linetype="dashed", color="red", size=1)+ annotate("text", x=as.POSIXct(dt1, origin = ), y = c(14.5), label = c("2 Year Flow") , color="Black", size=3 , angle=1800, fontface="bold")+ annotate("text", x=as.POSIXct(dt1, origin =), y = c(7.5), label = c("Concern Level") , color="Black", size=3 , angle=1800, fontface="bold")
+ggplotly(SVCD)
+```
+
+## Column {data-height="800"}
+
+### Total Precipitation (mm)
+
+```{r}
+SVPG<-ggplot(SHELPFin, aes(x=Date, y=Precipitation))+labs(y="Total Daily Precipitation (mm)")+geom_bar(stat="identity", colour="black")
+ggplotly(SVPG)
+```
+
+# Upper Glen Ross (TR.)
+
+## Row
+
+### Water Level (m)
+
+```{r}
+UGRD<-ggplot(UGRin, aes(x=Date, y=WaterLevel))+labs(y="Water Level (m)")+ geom_line(color = "blue")
+ggplotly(UGRD)
+```
+
+# Lower Glen Ross (TR.)
+
+## Row
+
+### Water Level (m)
+
+```{r}
+LGRD<-ggplot(LGRin, aes(x=Date, y=WaterLevel))+labs(y="Water Level (m)")+ geom_line(color = "blue")+ geom_hline(yintercept=111.65, linetype="dashed", color="red", size=1)+ annotate("text", x=as.POSIXct(dt1, origin = ), y = c(111.66), label = c("Concern Level") , color="Black", size=3 , angle=1800, fontface="bold")
+ggplotly(LGRD)
+```
+
+# Lake Ontario
+
+```{r}
+Lake<-ggplot(LakeOntFin, aes(x=Date, y=WaterLevel))+labs(y="Water Level (m)")+ geom_line(color = "blue")
+ggplotly(Lake)
+
+```
+
+# Site Map
+
+```{r}
+library(leaflet)
+leaflet() %>%
+  addTiles() %>%
+  addMarkers(lng=-77.61250, lat=44.108889, popup="Mayhew Creek (02HK011)") %>%
+  addMarkers(lng=-78.001111, lat=43.991667, popup="Shelter Valley Creek (02HD010)")%>%
+  addMarkers(lng=-77.744444, lat=44.059722, popup="Proctor (Butler) Creek (02HD018)")%>%
+  addMarkers(lng=-77.830833, lat=44.301667, popup="Trout Creek (02HK016)")%>%
+  addMarkers(lng=-77.910833, lat=44.196667, popup="Burnley (Mill) Creek (02HK009)")%>%
+  addMarkers(lng=-77.786944, lat=44.134722, popup="Cold Creek (02HK007)")%>%
+  addMarkers(lng=-77.818889, lat=44.199444, popup="Salt Creek (02HK015)")%>%
+  addMarkers(lng=-77.477222, lat=44.338333, popup="Rawdon Creek (02HK008)")%>%
+  addMarkers(lng=-77.628333, lat=44.331667, popup="Squires (Hoards) Creek (02HK017)")%>%
+  addMarkers(lng=-78.183066, lat=44.144521, popup="Rice Lake at Harwood")%>%
+  addMarkers(lng=-77.782189, lat=44.235639, popup="Percy Boom")%>%
+  addMarkers(lng=-77.598785, lat=44.265537, popup="Upper Glen Ross")%>%
+  addMarkers(lng=-77.595407, lat=44.266704, popup="Lower Glen Ross")%>%
+  addMarkers(lng=-77.787202, lat=44.377000, popup="Healey Falls")%>%
+  addMarkers(lng=-78.167917, lat=43.952278, popup= "Cobourg (#13590)")
+
+```
