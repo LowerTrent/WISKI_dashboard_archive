@@ -2,9 +2,9 @@ name: Scheduled R Report
 
 on:
   schedule:
-    # Runs everyday at 09:00 UTC
+    # Runs everyday at 09:00 UTC (4:00 AM EST)
     - cron: '0 9 * * *'
-  workflow_dispatch: # Allows manual trigger
+  workflow_dispatch: # Allows manual trigger button in GitHub Actions
 
 jobs:
   render-report:
@@ -20,13 +20,30 @@ jobs:
         with:
           r-version: 'release'
 
-      # --- ADD THIS STEP TO FIX THE ERROR ---
       - name: Set up Pandoc
         uses: r-lib/actions/setup-pandoc@v2
 
-      - name: Install packages
+      - name: Install System Dependencies
         run: |
-          Rscript -e "install.packages(c('rmarkdown', 'knitr'))"
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
+
+      - name: Set up R Package Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-r-${{ hashFiles('**/index.Rmd') }}
+          restore-keys: |
+            ${{ runner.os }}-r-
+
+      - name: Install CRAN Packages
+        run: |
+          Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org'))"
+          Rscript -e "install.packages(c('rmarkdown', 'knitr', 'flexdashboard', 'ggplot2', 'plotly', 'plyr', 'kableExtra', 'remotes', 'gert'))"
+
+      - name: Install WISKIr Custom Package from GitHub
+        run: |
+          Rscript -e "remotes::install_github('CentreForHydrology/WISKIr/WISKIr')"
 
       - name: Render R Markdown to HTML
         run: |
