@@ -2,9 +2,9 @@ name: Scheduled R Report
 
 on:
   schedule:
-    # Runs everyday at 09:00 UTC (Change this using cron syntax)
+    # Runs everyday at 09:00 UTC
     - cron: '0 9 * * *'
-  workflow_dispatch: # Allows you to also trigger it manually with a button
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
   render-report:
@@ -20,6 +20,10 @@ jobs:
         with:
           r-version: 'release'
 
+      # --- ADD THIS STEP TO FIX THE ERROR ---
+      - name: Set up Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
       - name: Install packages
         run: |
           Rscript -e "install.packages(c('rmarkdown', 'knitr'))"
@@ -31,5 +35,5 @@ jobs:
       - name: Deploy HTML to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: . # Deploys the index.html from the root folder
-          branch: gh-pages # Deploys to a dedicated branch
+          folder: .
+          branch: gh-pages
