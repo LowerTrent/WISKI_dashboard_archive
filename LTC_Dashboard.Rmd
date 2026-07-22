@@ -8,7 +8,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-library(devtools)
+
 library(WISKIr)
 library(ggplot2)
 library(plotly)
