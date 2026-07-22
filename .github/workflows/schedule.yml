@@ -38,13 +38,12 @@ jobs:
 
       - name: Install CRAN Packages
         run: |
-          Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org'))"
-          Rscript -e "install.packages(c('rmarkdown', 'knitr', 'flexdashboard', 'ggplot2', 'plotly', 'plyr', 'kableExtra', 'remotes', 'gert'))"
+          Rscript -e "install.packages(c('pak','rmarkdown','knitr','flexdashboard','ggplot2','plotly','plyr','kableExtra','gert'), repos='https://cloud.r-project.org')"
 
-      - name: Install WISKIr Custom Package from GitHub
+      - name: Install WISKIr
         run: |
-          Rscript -e "Sys.unsetenv('GITHUB_PAT'); remotes::install_github('CentreForHydrology/WISKIr', auth_token = NULL)"
-
+          Rscript -e "pak::pkg_install('github::CentreForHydrology/WISKIr?subdir=WISKIr')"
+     
       - name: Render R Markdown to HTML
         run: |
           Rscript -e "rmarkdown::render('LTC_Dashboard.Rmd', output_file = 'index.html')"
