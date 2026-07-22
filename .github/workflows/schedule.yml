@@ -60,7 +60,9 @@ jobs:
             'plotly',
             'plyr',
             'kableExtra',
-            'gert'
+            'gert',
+            'shiny',
+            'leaflet'
           ))"
 
       - name: Clone WISKIr
